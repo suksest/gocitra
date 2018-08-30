@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"image"
 	"image/draw"
@@ -11,12 +12,10 @@ import (
 )
 
 func main() {
-	cropImg()
-	join()
+	join4Img()
 }
 
-func cropImg() {
-	var err error
+func join4Img() {
 	buffer1, err := bimg.Read("img.jpeg")
 	buffer2, err := bimg.Read("img.jpeg")
 	buffer3, err := bimg.Read("img.jpeg")
@@ -25,35 +24,18 @@ func cropImg() {
 		fmt.Fprintln(os.Stderr, err)
 	}
 
-	resized1, err := bimg.NewImage(buffer1).SmartCrop(100, 100)
-	resized2, err := bimg.NewImage(buffer2).SmartCrop(100, 100)
-	resized3, err := bimg.NewImage(buffer3).SmartCrop(100, 100)
-	resized4, err := bimg.NewImage(buffer4).SmartCrop(100, 100)
+	resized1, err := bimg.NewImage(buffer1).SmartCrop(96, 96)
+	resized2, err := bimg.NewImage(buffer2).SmartCrop(96, 96)
+	resized3, err := bimg.NewImage(buffer3).SmartCrop(96, 96)
+	resized4, err := bimg.NewImage(buffer4).SmartCrop(96, 96)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
 
-	bimg.Write("source1.jpeg", resized1)
-	bimg.Write("source2.jpeg", resized2)
-	bimg.Write("source3.jpeg", resized3)
-	bimg.Write("source4.jpeg", resized4)
-}
-
-func join() {
-	imgFile1, err := os.Open("source1.jpeg")
-	imgFile2, err := os.Open("source2.jpeg")
-	imgFile3, err := os.Open("source3.jpeg")
-	imgFile4, err := os.Open("source4.jpeg")
-	if err != nil {
-		fmt.Println(err)
-	}
-	img1, _, err := image.Decode(imgFile1)
-	img2, _, err := image.Decode(imgFile2)
-	img3, _, err := image.Decode(imgFile3)
-	img4, _, err := image.Decode(imgFile4)
-	if err != nil {
-		fmt.Println(err)
-	}
+	img1, _, err := image.Decode(bytes.NewReader(resized1))
+	img2, _, err := image.Decode(bytes.NewReader(resized2))
+	img3, _, err := image.Decode(bytes.NewReader(resized3))
+	img4, _, err := image.Decode(bytes.NewReader(resized4))
 
 	//starting position of the second image (bottom left)
 	sp2 := image.Point{img1.Bounds().Dx(), 0}
@@ -75,13 +57,13 @@ func join() {
 	draw.Draw(rgba, r3, img3, image.Point{0, 0}, draw.Src)
 	draw.Draw(rgba, r4, img4, image.Point{0, 0}, draw.Src)
 
-	out, err := os.Create("./output.jpeg")
+	out, err := os.Create("./bisa.jpeg")
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	var opt jpeg.Options
-	opt.Quality = 100
+	opt.Quality = 95
 
 	jpeg.Encode(out, rgba, &opt)
 }
